@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Task Manager</h1>
+
+        <form id="taskForm">
+            <label for="taskInput">New Task:</label>
+            <input type="text" id="taskInput" required>
+            <button type="submit">Add Task</button>
+        </form>
+
+        <div id="taskList">
+            <!-- Task items will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchTasks();
+
+            document.getElementById('taskForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                const taskInput = document.getElementById('taskInput').value;
+                addTask(taskInput);
+                document.getElementById('taskInput').value = '';
+            });
+        });
+
+function addTask(task) {
+    fetch('/add_task', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `task=${encodeURIComponent(task)}`,
+    })
+        .then(response => response.json())
+        .then(data => {
+            displayTasks(data.tasks);
+        });
+}
+
+function deleteTask(task) {
+    fetch('/delete_task', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `task=${encodeURIComponent(task)}`,
+    })
+        .then(response => response.json())
+        .then(data => {
+            displayTasks(data.tasks);
+        });
+}
+
+function fetchTasks() {
+    fetch('/tasks')
+        .then(response => response.json())
+        .then(data => {
+            displayTasks(data.tasks);
+        });
+    }
+
+function displayTasks(tasks) {
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = ''; // Clear existing tasks
+    tasks.forEach(task => {
+        const taskItem = document.createElement('div');
+        taskItem.className = 'task-item';
+        taskItem.innerHTML = `
+            ${task}
+            <button class="delete-btn" onclick="deleteTask('${task}')">Delete</button>
+        `;
+        taskList.appendChild(taskItem);
+    });
+}
+</script>
+</body>
+
+</html>
